@@ -17,6 +17,7 @@
 		},
 		created() {
 			this.children = [];
+			this.$options.name='uniSwipeAction'
 		},
 		methods: {
 			// 公开给用户使用，重制组件样式

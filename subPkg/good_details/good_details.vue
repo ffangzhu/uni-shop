@@ -26,7 +26,7 @@
 					<text>收藏</text>
 				</view>
 			</view>
-			<view class="goods-yf">运费：免运费</view>
+			<view class="goods-yf">运费：免运费--{{cartTotal}}</view>
 		</view>
 		<view class="goods-intro">
 			<rich-text :nodes="goodDeatils.goods_introduce"></rich-text>
@@ -44,65 +44,97 @@
 </template>
 
 <script>
-	export default {
-		data() {
-			return {
-				goodDeatils: {},
-				options: [ {
-					icon: 'shop',
-					text: '店铺',
-				}, {
-					icon: 'cart',
-					text: '购物车',
-					info: 2
-				}],
-				buttonGroup: [{
-					text: '加入购物车',
-					backgroundColor: 'linear-gradient(90deg, #FFCD1E, #FF8A18)',
-					color: '#fff'
-				},
-				{
-					text: '立即购买',
-					backgroundColor: 'linear-gradient(90deg, #FE6035, #EF1224)',
-					color: '#fff'
+import { mapState, mapMutations, mapGetters } from 'vuex'
+export default {
+	computed:{
+		...mapState("cart",['cartList']),
+		...mapGetters("cart",['cartTotal'])
+	},
+	watch:{
+		cartTotal:{
+			handler(newVal){
+				const findResult  = this.options.find(x=>x.text==='购物车')
+				if(findResult){
+					findResult.info = newVal
 				}
-			],
-				
-			};
-		},
-		onLoad(options){
-			this.goods_id = options.goods_id
-			this.getDeatils(options.goods_id)
-		},
-		methods:{
-			async getDeatils(goods_id){
-				const {data} = await uni.$http.get('/api/public/v1/goods/detail',{goods_id})
-				if(data?.meta?.status !== 200){
-					return uni.$showMsg()
-				}
-				data.message.goods_introduce = data.message.goods_introduce.replace(/<img /g, '<img style="display: bolck;"')
-				this.goodDeatils = data.message
-				
 			},
-			preview(i){
-				uni.previewImage({
-					current: i,
-					urls: this.goodDeatils.pics.map(x=>x.pics_big)
+			immediate: true
+		}
+	},
+	data() {
+		return {
+			goodDeatils: {},
+			options: [ {
+				icon: 'shop',
+				text: '店铺',
+			}, {
+				icon: 'cart',
+				text: '购物车',
+				info: 0
+			}],
+			buttonGroup: [{
+				text: '加入购物车',
+				backgroundColor: 'linear-gradient(90deg, #FFCD1E, #FF8A18)',
+				color: '#fff'
+			},
+			{
+				text: '立即购买',
+				backgroundColor: 'linear-gradient(90deg, #FE6035, #EF1224)',
+				color: '#fff'
+			}
+		],
+			
+		};
+	},
+	onLoad(options){
+		this.goods_id = options.goods_id
+		this.getDeatils(options.goods_id)
+	},
+	methods:{
+		...mapMutations('cart',['addToCart']),
+		async getDeatils(goods_id){
+			const {data} = await uni.$http.get('/api/public/v1/goods/detail',{goods_id})
+			if(data?.meta?.status !== 200){
+				return uni.$showMsg()
+			}
+			data.message.goods_introduce = data.message.goods_introduce
+			.replace(/<img /g, '<img style="display: block;" ')
+			.replace(/.webp/g, '.jpg')
+			this.goodDeatils = data.message
+			
+		},
+		preview(i){
+			uni.previewImage({
+				current: i,
+				urls: this.goodDeatils.pics.map(x=>x.pics_big)
+			})
+		},
+		onCartClick(e){
+			if(e.content.text === '购物车'){
+				uni.switchTab({
+					url:'/pages/cart/cart'
 				})
-			},
-			onCartClick(e){
-				if(e.content.text === '购物车'){
-					uni.switchTab({
-						url:'/pages/cart/cart'
-					})
+			}
+			
+		},
+		buttonCartClick(e){
+			console.log(e)
+			if(e.content.text === "加入购物车"){
+				const { goods_id, goods_name, goods_price, goods_small_logo} = this.goodDeatils
+				const goods={
+					goods_id, 
+					goods_name, 
+					goods_price, 
+					goods_count: 1, 
+					goods_small_logo, 
+					goods_state: true
 				}
-				
-			},
-			buttonCartClick(){
+				this.addToCart(goods)
 				
 			}
 		}
 	}
+}
 </script>
 
 <style lang="scss">

@@ -42,7 +42,14 @@
             },
             "ios" : {},
             /* ios打包配置 */
-            "sdkConfigs" : {}
+            "sdkConfigs" : {
+				"oauth":{
+					"weixin":{
+						"appsecret": "6bdf3a4800a3bc73f5917cc37d18e1d3"
+					}
+					
+				}
+			}
         }
     },
     /* SDK配置 */
@@ -55,6 +62,7 @@
             "urlCheck" : false,
 			"checkSiteMap": false
         },
+		"requiredPrivateInfos": ["getLocation", "chooseLocation", "chooseAddress"],
         "usingComponents" : true
     },
     "vueVersion" : "2"
